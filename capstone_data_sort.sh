@@ -5,7 +5,7 @@
 #
 # Folder structure:
 #
-# +--capstone
+# +--data
 #    +--train
 #    |   +--malignant   (80% of class 1 images)
 #    |   +--benign      (80% of class 0 images)
@@ -14,11 +14,11 @@
 #        +--benign      (20% of class 0 images)
 
 # create data folders
-train_malignant_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/train/malignant/"
-train_benign_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/train/benign/"
+train_malignant_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/data/train/malignant/"
+train_benign_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/data/train/benign/"
 
-test_malignant_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/test/malignant/"
-test_benign_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/test/benign/"
+test_malignant_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/data/test/malignant/"
+test_benign_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/data/test/benign/"
 
 csv_path="/Users/jaredlauer/Documents/BrainStation/Capstone/capstone/kaggle_data/train_labels.csv"
 
