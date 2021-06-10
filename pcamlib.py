@@ -79,6 +79,37 @@ def plot_history(hist_df, figsize=(10,4), title=None, save=False, filepath=None)
     # Show the subplots
     plt.show()
 
+def plot_examples(pcam, save=False, filepath=None):
+    train_iterator = pcam['train'].__iter__()
+
+    plt.subplots(3, 3, figsize=(10,10))
+
+    for i in range(9):
+
+        plt.subplot(3, 3, i+1)
+
+        train_image = train_iterator.get_next()
+
+        image = train_image['image']
+        label = int(train_image['label'])
+
+        plt.imshow(train_image['image'])
+        plt.title('Class Label: '+ str(label), size=16)
+
+        # Create a Rectangle patch
+        #     rect = patches.Rectangle((50, 100), 40, 30, linewidth=1, edgecolor='r', facecolor='none')
+
+        #     # Add the patch to the Axes
+        #     ax.add_patch(rect)
+
+    plt.tight_layout()
+
+    if save:
+        # Sample filepath: 'data/plots/example_images.png'
+        plt.savefig(filepath)
+
+    plt.show()
+
 def plot_cf_matrix(y_true, y_pred, normalize=True, save=False, filepath=None):
     cf_matrix = confusion_matrix(y_true, y_pred)
 
@@ -168,3 +199,46 @@ def generate_y_pred(y_proba, threshold=0.5):
 
 def print_test_accuracy(model, test_pipeline, steps=128, verbose=0):
     print("Test set accuracy is {0:.4f}".format(model.evaluate(test_pipeline, steps=steps, verbose=verbose)[1]))
+
+def print_classification_report(y_true, y_pred):
+    print(classification_report(y_true, y_pred, digits=4))
+
+def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
+    test_iterator = pcam['test'].__iter__()
+    i = 0
+    j = 0
+
+    plt.subplots(3, 3, figsize=(10,10))
+
+    while True:
+        next_image = test_iterator.get_next()
+
+        image = next_image['image']
+        label = int(next_image['label'])
+
+        # If the image was misclassified
+        if y_true[i] != y_pred[i]:
+            print(i)
+
+            plt.subplot(3, 3, j+1)
+
+            plt.imshow(image)
+
+            title = f'Predicted Label: {str(y_pred[i])} ({str(label)})'
+            plt.title(title, size=16)
+
+            j += 1
+
+        # Stop the loop after 9 images are plotted
+        if j == 9:
+            break
+
+        i += 1
+
+    plt.tight_layout()
+
+    if save:
+        # Sample filepath: 'data/plots/cnn1_misclassified_images.png'
+        plt.savefig(filepath)
+
+    plt.show()
