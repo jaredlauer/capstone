@@ -8,7 +8,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay,\
-roc_curve, roc_auc_score, classification_report, precision_score, recall_score
+roc_curve, roc_auc_score, classification_report, accuracy_score, precision_score, recall_score
 
 def load_pcam():
     pcam, pcam_info = tfds.load("patch_camelyon", with_info=True)
@@ -30,10 +30,7 @@ def build_pipelines(pcam):
 
     return train_pipeline, valid_pipeline, test_pipeline
 
-def save_history(history, filepath):
-    # Save the history of the model to a pandas dataframe
-    hist_df = pd.DataFrame(history.history)
-
+def save_history(hist_df, filepath):
     # Export the dataframe to a csv so it can be read into pandas later without re-training the model
     # filepath example: 'cnn1_history.csv'
     hist_csv_file = filepath
@@ -197,8 +194,10 @@ def generate_y_pred(y_proba, threshold=0.5):
 
     return y_pred
 
-def print_test_accuracy(model, test_pipeline, steps=128, verbose=0):
-    print("Test set accuracy is {0:.4f}".format(model.evaluate(test_pipeline, steps=steps, verbose=verbose)[1]))
+def print_test_accuracy(y_true, y_pred):
+    # (model, test_pipeline, steps=128, verbose=0)    
+    # print("Test set accuracy is {0:.4f}".format(model.evaluate(test_pipeline, steps=steps, verbose=verbose)[1]))
+    print(accuracy_score(y_true, y_pred))
 
 def print_classification_report(y_true, y_pred):
     print(classification_report(y_true, y_pred, digits=4))
