@@ -76,21 +76,22 @@ def plot_history(hist_df, figsize=(10,4), title=None, save=False, filepath=None)
     # Show the subplots
     plt.show()
 
-def plot_examples(pcam, save=False, filepath=None):
-    train_iterator = pcam['train'].__iter__()
+def plot_examples(pcam, split='train', save=False, filepath=None):
+    iterator = pcam[split].__iter__()
 
     plt.subplots(3, 3, figsize=(10,10))
+    plt.suptitle(split + ' set samples', size=20)
 
     for i in range(9):
 
         plt.subplot(3, 3, i+1)
 
-        train_image = train_iterator.get_next()
+        sample_image = iterator.get_next()
 
-        image = train_image['image']
-        label = int(train_image['label'])
+        image = sample_image['image']
+        label = int(sample_image['label'])
 
-        plt.imshow(train_image['image'])
+        plt.imshow(sample_image['image'])
         plt.title('Class Label: '+ str(label), size=16)
 
         # Create a Rectangle patch
@@ -149,16 +150,21 @@ def plot_roc_curve(y_true, y_proba, save=False, filepath=None):
     print(fprs.shape)
     print(tprs.shape)
 
-def generate_y_true(pcam):
+def generate_y_true(pcam, split='test'):
     # Initialize iterator so it starts from the beginning
-    test_iterator = pcam['test'].__iter__()
+    iterator = pcam[split].__iter__()
 
     # Create an empty list to store the test labels
     y_true = []
 
-    # There are 32768 images in the test set
-    for i in range(32768):
-        y_true.append(int(test_iterator.get_next()['label']))
+    if split == 'train':
+        # There are 262144 images in the training set
+        for i in range(262144):
+            y_true.append(int(iterator.get_next()['label']))
+    else:
+        # There are 32768 images in the validation and test sets
+        for i in range(32768):
+            y_true.append(int(iterator.get_next()['label']))
 
     return np.array(y_true)
 
