@@ -76,38 +76,6 @@ def plot_history(hist_df, figsize=(10,4), title=None, save=False, filepath=None)
     # Show the subplots
     plt.show()
 
-def plot_examples(pcam, split='train', save=False, filepath=None):
-    iterator = pcam[split].__iter__()
-
-    plt.subplots(3, 3, figsize=(10,10))
-    plt.suptitle(split + ' set samples', size=20)
-
-    for i in range(9):
-
-        plt.subplot(3, 3, i+1)
-
-        sample_image = iterator.get_next()
-
-        image = sample_image['image']
-        label = int(sample_image['label'])
-
-        plt.imshow(sample_image['image'])
-        plt.title('Class Label: '+ str(label), size=16)
-
-        # Create a Rectangle patch
-        #     rect = patches.Rectangle((50, 100), 40, 30, linewidth=1, edgecolor='r', facecolor='none')
-
-        #     # Add the patch to the Axes
-        #     ax.add_patch(rect)
-
-    plt.tight_layout()
-
-    if save:
-        # Sample filepath: 'data/plots/example_images.png'
-        plt.savefig(filepath)
-
-    plt.show()
-
 def plot_cf_matrix(y_true, y_pred, normalize=True, save=False, filepath=None):
     cf_matrix = confusion_matrix(y_true, y_pred)
 
@@ -201,19 +169,52 @@ def generate_y_pred(y_proba, threshold=0.5):
     return y_pred
 
 def print_test_accuracy(y_true, y_pred):
-    # (model, test_pipeline, steps=128, verbose=0)    
+    # (model, test_pipeline, steps=128, verbose=0)
     # print("Test set accuracy is {0:.4f}".format(model.evaluate(test_pipeline, steps=steps, verbose=verbose)[1]))
     print(accuracy_score(y_true, y_pred))
 
 def print_classification_report(y_true, y_pred):
     print(classification_report(y_true, y_pred, digits=4))
 
+def plot_examples(pcam, split='train', save=False, filepath=None):
+    iterator = pcam[split].__iter__()
+
+    fig, ax = plt.subplots(3, 3, figsize=(10,10))
+    plt.suptitle(split + ' set samples', size=20)
+
+    for i in range(9):
+
+        ax = plt.subplot(3, 3, i+1)
+
+        sample_image = iterator.get_next()
+
+        image = sample_image['image']
+        label = int(sample_image['label'])
+
+        ax.imshow(image)
+        plt.title('Class Label: '+ str(label), size=16)
+
+        # Create a Rectangle patch
+        rect = patches.Rectangle((31, 31), 32, 32, linewidth=3, edgecolor='g', facecolor='none')
+
+        # Add the patch to the Axes
+        ax.add_patch(rect)
+
+    plt.tight_layout()
+
+    if save:
+        # Sample filepath: 'data/plots/example_images.png'
+        plt.savefig(filepath)
+
+    plt.show()
+
 def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
     test_iterator = pcam['test'].__iter__()
     i = 0
     j = 0
 
-    plt.subplots(3, 3, figsize=(10,10))
+    fig, ax = plt.subplots(3, 3, figsize=(10,10))
+    plt.suptitle('Misclassified Images from the Test Set', size=20)
 
     while True:
         next_image = test_iterator.get_next()
@@ -225,12 +226,18 @@ def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
         if y_true[i] != y_pred[i]:
             print(i)
 
-            plt.subplot(3, 3, j+1)
+            ax = plt.subplot(3, 3, j+1)
 
-            plt.imshow(image)
+            ax.imshow(image)
 
             title = f'Predicted Label: {str(y_pred[i])} ({str(label)})'
             plt.title(title, size=16)
+
+            # Create a Rectangle patch
+            rect = patches.Rectangle((31, 31), 32, 32, linewidth=3, edgecolor='g', facecolor='none')
+
+            # Add the patch to the Axes
+            ax.add_patch(rect)
 
             j += 1
 
