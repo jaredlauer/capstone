@@ -10,23 +10,40 @@ import tensorflow_datasets as tfds
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay,\
 roc_curve, roc_auc_score, classification_report, accuracy_score, precision_score, recall_score
 
-def load_pcam():
-    pcam, pcam_info = tfds.load("patch_camelyon", with_info=True)
+def load_pcam(data_dir=None):
+    pcam, pcam_info = tfds.load("patch_camelyon", with_info=True, data_dir=data_dir)
     print(pcam_info)
     return pcam, pcam_info
 
 def convert_sample(sample):
     # Credit: Geert Litjens
     image, label = sample['image'], sample['label']
-    image = tf.image.convert_image_dtype(image, tf.float32)
+    
+    image = tf.image.convert_image_dtype(image, tf.float32)  
     label = tf.one_hot(label, 2, dtype=tf.float32)
     return image, label
 
-def build_pipelines(pcam):
-    # Credit: Geert Litjens
-    train_pipeline = pcam['train'].map(convert_sample, num_parallel_calls=8).shuffle(1024).repeat().batch(64).prefetch(2)
-    valid_pipeline = pcam['validation'].map(convert_sample, num_parallel_calls=8).repeat().batch(128).prefetch(2)
-    test_pipeline = pcam['test'].map(convert_sample, num_parallel_calls=8).batch(128).prefetch(2)
+def convert_sample_grayscale(sample):
+    image, label = sample['image'], sample['label']
+    
+    image = tf.image.rgb_to_grayscale(image, name=None)
+    image = tf.image.convert_image_dtype(image, tf.float32)  
+    
+    label = tf.one_hot(label, 2, dtype=tf.float32)
+    
+    return image, label        
+
+def build_pipelines(pcam, grayscale=False):
+    if grayscale:
+        train_pipeline = pcam['train'].map(convert_sample_grayscale, num_parallel_calls=8).shuffle(1024).repeat().batch(64).prefetch(2)
+        valid_pipeline = pcam['validation'].map(convert_sample_grayscale, num_parallel_calls=8).repeat().batch(128).prefetch(2)
+        test_pipeline = pcam['test'].map(convert_sample_grayscale, num_parallel_calls=8).batch(128).prefetch(2)
+        
+    else:
+        # Credit: Geert Litjens 
+        train_pipeline = pcam['train'].map(convert_sample, num_parallel_calls=8).shuffle(1024).repeat().batch(64).prefetch(2)
+        valid_pipeline = pcam['validation'].map(convert_sample, num_parallel_calls=8).repeat().batch(128).prefetch(2)
+        test_pipeline = pcam['test'].map(convert_sample, num_parallel_calls=8).batch(128).prefetch(2)
 
     return train_pipeline, valid_pipeline, test_pipeline
 
@@ -136,7 +153,7 @@ def generate_y_true(pcam, split='test'):
 
     return np.array(y_true)
 
-def generate_y_proba(model, test_pipeline, class_1=True, save=False, filepath=None):
+def generate_y_proba(model, test_pipeline, class_1=False, save=False, filepath=None):
     y_proba = model.predict(test_pipeline)
 
     if class_1:
@@ -176,7 +193,7 @@ def print_test_accuracy(y_true, y_pred):
 def print_classification_report(y_true, y_pred):
     print(classification_report(y_true, y_pred, digits=4))
 
-def plot_examples(pcam, split='train', save=False, filepath=None):
+def plot_examples(pcam, split='train', grayscale=False, save=False, filepath=None):
     iterator = pcam[split].__iter__()
 
     fig, ax = plt.subplots(3, 3, figsize=(10,10))
@@ -190,8 +207,18 @@ def plot_examples(pcam, split='train', save=False, filepath=None):
 
         image = sample_image['image']
         label = int(sample_image['label'])
-
-        ax.imshow(image)
+        
+        if grayscale:
+            image = tf.image.rgb_to_grayscale(image)
+            print(image.shape)
+             
+            # Need to change the colormap of matplotlib to 'Greys_r' or else the images look yellow/green when plotted
+            ax.imshow(image, cmap='Greys_r')
+        
+        else:
+            ax.imshow(image)
+            print(image.shape)
+            
         plt.title('Class Label: '+ str(label), size=16)
 
         # Create a Rectangle patch
@@ -208,13 +235,14 @@ def plot_examples(pcam, split='train', save=False, filepath=None):
 
     plt.show()
 
-def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
+def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, save=False, filepath=None):
     test_iterator = pcam['test'].__iter__()
     i = 0
     j = 0
 
     fig, ax = plt.subplots(3, 3, figsize=(10,10))
     plt.suptitle('Misclassified Images from the Test Set', size=20)
+    print('Misclassified Image Indices: ')
 
     while True:
         next_image = test_iterator.get_next()
@@ -227,8 +255,15 @@ def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
             print(i)
 
             ax = plt.subplot(3, 3, j+1)
-
-            ax.imshow(image)
+            
+            if grayscale:
+                image = tf.image.rgb_to_grayscale(image)
+             
+                # Need to change the colormap of matplotlib to 'Greys_r' or else the images look yellow/green when plotted
+                ax.imshow(image, cmap='Greys_r')
+        
+            else:
+                ax.imshow(image)
 
             title = f'Predicted Label: {str(y_pred[i])} ({str(label)})'
             plt.title(title, size=16)
@@ -254,3 +289,5 @@ def plot_misclassified_images(pcam, y_true, y_pred, save=False, filepath=None):
         plt.savefig(filepath)
 
     plt.show()
+
+# def calculate_decision_threshold(y_true, y_proba, )
