@@ -132,8 +132,6 @@ def plot_roc_curve(y_true, y_proba, save=False, filepath=None):
     plt.show()
 
     print(f'Area under curve (AUC):{roc_auc}')
-    print(fprs.shape)
-    print(tprs.shape)
 
 def generate_y_true(pcam, split='test'):
     # Initialize iterator so it starts from the beginning
@@ -189,6 +187,20 @@ def print_test_accuracy(y_true, y_pred):
     # (model, test_pipeline, steps=128, verbose=0)
     # print("Test set accuracy is {0:.4f}".format(model.evaluate(test_pipeline, steps=steps, verbose=verbose)[1]))
     print(accuracy_score(y_true, y_pred))
+    
+def print_workload_reduction(y_pred):
+    size_of_test_set = 32768
+    
+    # Cancerous images are class 1 predictions
+    cancer_images = np.count_nonzero(y_pred)
+    
+    # Healthy images are class 0 predictions and are discarded
+    healthy_images = size_of_test_set - cancer_images
+    
+    # Workload reduction is the percent of predicted healthy images expressed as a percentage of the test set
+    workload_reduction = round((100*healthy_images / size_of_test_set), 1) 
+    
+    print(f'{workload_reduction}%')
 
 def print_classification_report(y_true, y_pred):
     print(classification_report(y_true, y_pred, digits=4))
@@ -217,7 +229,6 @@ def plot_examples(pcam, split='train', grayscale=False, save=False, filepath=Non
         
         else:
             ax.imshow(image)
-            print(image.shape)
             
         plt.title('Class Label: '+ str(label), size=16)
 
@@ -227,7 +238,8 @@ def plot_examples(pcam, split='train', grayscale=False, save=False, filepath=Non
         # Add the patch to the Axes
         ax.add_patch(rect)
 
-    plt.tight_layout()
+    # Need to specify values for rect=[left, bottom, right, top] to ensure suptitle isn't overlapping 
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if save:
         # Sample filepath: 'data/plots/example_images.png'
@@ -235,14 +247,20 @@ def plot_examples(pcam, split='train', grayscale=False, save=False, filepath=Non
 
     plt.show()
 
-def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, save=False, filepath=None):
+def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, image_index=0, save=False, filepath=None):
+
+    # Create an iterator object to iterate through images in the test set
     test_iterator = pcam['test'].__iter__()
-    i = 0
-    j = 0
+    
+    images_plotted = 0
+    
+    # If image_index is set to a value, iterate through the images to start from the specified index 
+    # i.e. if image_index = 10, we iterate through the first 9 images here so when we load the next image inside the loop, we will load the 10th image
+    for i in range(image_index):
+        next_image = test_iterator.get_next()
 
     fig, ax = plt.subplots(3, 3, figsize=(10,10))
     plt.suptitle('Misclassified Images from the Test Set', size=20)
-    print('Misclassified Image Indices: ')
 
     while True:
         next_image = test_iterator.get_next()
@@ -251,10 +269,9 @@ def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, save=False,
         label = int(next_image['label'])
 
         # If the image was misclassified
-        if y_true[i] != y_pred[i]:
-            print(i)
-
-            ax = plt.subplot(3, 3, j+1)
+        if y_true[image_index] != y_pred[image_index]:
+            
+            ax = plt.subplot(3, 3, images_plotted+1)
             
             if grayscale:
                 image = tf.image.rgb_to_grayscale(image)
@@ -265,7 +282,7 @@ def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, save=False,
             else:
                 ax.imshow(image)
 
-            title = f'Predicted Label: {str(y_pred[i])} ({str(label)})'
+            title = f'Image {str(image_index)}\nPredicted Label: {str(y_pred[image_index])} ({str(label)})'
             plt.title(title, size=16)
 
             # Create a Rectangle patch
@@ -274,20 +291,19 @@ def plot_misclassified_images(pcam, y_true, y_pred, grayscale=False, save=False,
             # Add the patch to the Axes
             ax.add_patch(rect)
 
-            j += 1
+            images_plotted += 1
 
         # Stop the loop after 9 images are plotted
-        if j == 9:
+        if images_plotted == 9:
             break
 
-        i += 1
-
-    plt.tight_layout()
+        image_index += 1
+        
+    # Need to specify values for rect=[left, bottom, right, top] to ensure suptitle isn't overlapping
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if save:
         # Sample filepath: 'data/plots/cnn1_misclassified_images.png'
         plt.savefig(filepath)
 
     plt.show()
-
-# def calculate_decision_threshold(y_true, y_proba, )
