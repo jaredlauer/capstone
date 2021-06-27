@@ -1,3 +1,7 @@
+# Models too large to track
+data/models/resnet50
+data/models/vgg16
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
