@@ -1,8 +1,8 @@
 # capstone
-BrainStation Capstone Project - Detecting Cancer using CNNs
-Author: Jared Lauer
+## BrainStation Capstone Project - Detecting Cancer using CNNs
+## Author: Jared Lauer
 
-Following is a description of the files contained in this project. I recommend starting from the EDA notebook before proceeding to the notebooks containing CNN models.
+### Following is a description of the files contained in this project. I recommend starting from the EDA notebook before proceeding to the CNN1, VGG16, then ResNet50.
 
 1. EDA.ipynb
  
@@ -30,7 +30,7 @@ Following is a description of the files contained in this project. I recommend s
     
 6. GitHub Commands
 
-	A Google Colab notebook containing the necessary commands to clone, push and pull data from my capstone repo on GitHub.
+	A notebook containing the necessary commands to clone, pull, and push (if you have an auth token ;) ) data from my capstone repo on GitHub. I recommend cloning my repo into Google Drive using this notebook if you intend to use Google Colab with this project.
     
 7. data folder
 
@@ -42,6 +42,12 @@ Following is a description of the files contained in this project. I recommend s
 	data/models/y_proba: contains .csv files of trained model prediction probabilities. Especially useful for the transfer learning models which are too large to track using git when saving using model.save()
 	data/plots: saved plots which may include confusion matrices, training histories, ROC curves, etc.
 	
+8. requirements.txt
+    By running:
+    
+    `conda create -n pcam --file requirements.txt`
+    
+	This file can be used to create the pcam environment I used when running these notebooks locally, which has the same versions of all the packages used in the Python3 Colab environment. Note that it may be necessary to run `pip install tensorflow==2.5.0` after creating this environment to update tensorflow, as conda automatically uses the latest version of tensorflow in conda-forge which is 2.4.1 and I have not tested these notebooks in this version. In particular, you may encounter issues when using `load_model()` to load one of the saved models into these notebooks if you are on an older version of tensorflow.
     
 
    
